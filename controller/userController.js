@@ -62,6 +62,7 @@ export const login = async (req,res) => {
                 message:"Incorrect email or password"
             });
         }
+        console.log("success")
         generateToken(res, user, `Welcome back ${user.name}`);
 
     } catch (error) {
