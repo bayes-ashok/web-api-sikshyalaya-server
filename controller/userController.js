@@ -88,4 +88,26 @@ export const logout = async (_,res) => {
         }) 
     }
 }
-
+export const getUserProfile = async (req, res) => {
+    try {
+      console.log('User ID:', req.id);  // Verify the user ID
+      const user = await User.findById(req.id).select("-password");
+      if (!user) {
+        return res.status(404).json({
+          message: "Profile not found",
+          success: false,
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        user,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to load user",
+      });
+    }
+  };
+  
