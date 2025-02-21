@@ -1,33 +1,52 @@
-import express from "express";
-import connectDB from './database/db.js'; 
-import dotenv from "dotenv";
-import userRoute from "./routes/userRoute.js"
-import cookieParser from "cookie-parser";
-import cors from "cors";
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const authRoutes = require("./routes/auth-routes/index");
 
-dotenv.config({});
+async function connectDB() {
+  try {
+    await mongoose.connect("mongodb://localhost:27017/shikshyalaya-server", {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("Connected to MongoDB");
+  } catch (error) {
+    console.error("MongoDB connection error:", error);
+  }
+}
 
-// call database connection here
+// Call the function
 connectDB();
+
 const app = express();
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI;
 
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "DELETE", "PUT"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-const PORT = process.env.PORT;
-// const PORT = 8000;
 app.use(express.json());
-app.use(cookieParser());
-
-app.use(cors({
-    origin:"http://localhost:5173",
-    credentials:true
-}));
 
 
+//routes configuration
+app.use("/auth", authRoutes);
 
-app.use("/api/sikshyalaya/user", userRoute);
-
+app.use((err, req, res, next) => {
+  console.log(err.stack);
+  res.status(500).json({
+    success: false,
+    message: "Something went wrong",
+  });
+});
 
 app.listen(PORT, () => {
-    console.log(`Server listen at port ${PORT}`);
-})
+  console.log(`Server is now running on port ${PORT}`);
+});
+
 
