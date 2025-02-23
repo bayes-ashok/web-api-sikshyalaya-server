@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth-routes/index");
-
+const instructorCourseRoutes = require("./routes/instructor-routes/course-routes");
 async function connectDB() {
   try {
     await mongoose.connect("mongodb://localhost:27017/shikshyalaya-server", {
@@ -36,6 +36,7 @@ app.use(express.json());
 
 //routes configuration
 app.use("/auth", authRoutes);
+app.use("/instructor/course", instructorCourseRoutes);
 
 app.use((err, req, res, next) => {
   console.log(err.stack);

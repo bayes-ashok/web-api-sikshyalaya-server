@@ -3,10 +3,15 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const registerUser = async (req, res) => {
-  const { userName, userEmail, password, role, phone, image } = req.body;
+  let { fName, email, password, role, phone, image } = req.body;
+  console.log(fName, email, password, role, phone, image);
 
+   // Ensure role is set properly
+   if (!role) {
+    role = "user";
+  }
   const existingUser = await User.findOne({
-    $or: [{ userEmail }, { userName }],
+    $or: [{ email }, { fName }],
   });
 
   if (existingUser) {
@@ -18,8 +23,8 @@ const registerUser = async (req, res) => {
 
   const hashPassword = await bcrypt.hash(password, 10);
   const newUser = new User({
-    userName,
-    userEmail,
+    fName,
+    email,
     role,
     password: hashPassword,
     phone,
@@ -35,9 +40,11 @@ const registerUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-  const { userEmail, password } = req.body;
+  const { email, password } = req.body;
+  console.log("email:",email)
+  console.log("pw:",password)
 
-  const checkUser = await User.findOne({ userEmail });
+  const checkUser = await User.findOne({ email });
 
   if (!checkUser || !(await bcrypt.compare(password, checkUser.password))) {
     return res.status(401).json({
@@ -49,8 +56,8 @@ const loginUser = async (req, res) => {
   const accessToken = jwt.sign(
     {
       _id: checkUser._id,
-      userName: checkUser.userName,
-      userEmail: checkUser.userEmail,
+      fName: checkUser.fName,
+      email: checkUser.email,
       role: checkUser.role,
       phone: checkUser.phone,
       image: checkUser.image,
@@ -66,8 +73,8 @@ const loginUser = async (req, res) => {
       accessToken,
       user: {
         _id: checkUser._id,
-        userName: checkUser.userName,
-        userEmail: checkUser.userEmail,
+        fName: checkUser.fName,
+        email: checkUser.email,
         role: checkUser.role,
         phone: checkUser.phone,
         image: checkUser.image,
