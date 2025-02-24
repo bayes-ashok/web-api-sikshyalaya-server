@@ -65,79 +65,83 @@ const getAllStudentViewCourses = async (req, res) => {
 
 
 const getAllCourseTitles = async (req, res) => {
-    try {
-      // Fetching all courses and selecting only title, image, and category fields
-      const coursesList = await Course.find({}, 'id title image category');
-  
-      res.status(200).json({
-        success: true,
-        data: coursesList,
-      });
-    } catch (e) {
-      console.log(e);
-      res.status(500).json({
+  try {
+    // Fetching all courses and selecting only title, image, and category fields
+    const coursesList = await Course.find({}, 'title image category');
+
+    res.status(200).json({
+      success: true,
+      data: coursesList,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      success: false,
+      message: "Some error occurred!",
+    });
+  }
+};
+
+
+const getStudentViewCourseDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const courseDetails = await Course.findById(id);
+
+    if (!courseDetails) {
+      return res.status(404).json({
         success: false,
-        message: "Some error occurred!",
+        message: "No course details found",
+        data: null,
       });
     }
-  };
-  
-  
-  const getStudentViewCourseDetails = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const courseDetails = await Course.findById(id);
-  
-      if (!courseDetails) {
-        return res.status(404).json({
-          success: false,
-          message: "No course details found",
-          data: null,
-        });
-      }
-  
-      res.status(200).json({
-        success: true,
-        data: courseDetails,
-      });
-    } catch (e) {
-      console.log(e);
-      res.status(500).json({
-        success: false,
-        message: "Some error occured!",
-      });
+
+    res.status(200).json({
+      success: true,
+      data: courseDetails,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      success: false,
+      message: "Some error occured!",
+    });
+  }
+};
+const checkCoursePurchaseInfo = async (req, res) => {
+  try {
+    const { id, studentId } = req.params;
+    const studentCourses = await StudentCourses.findOne({ userId: studentId });
+
+    // Print debug info if studentCourses is null
+    if (!studentCourses) {
+      console.log("Student course record not found!");
+    } else {
+      console.log("StudentCourses:", studentCourses);
     }
-  };
-  const checkCoursePurchaseInfo = async (req, res) => {
-    try {
-      const { id, studentId } = req.params;
-      const studentCourses = await StudentCourses.findOne({ userId: studentId });
-  
-      // Print debug info if studentCourses is null
-      if (!studentCourses) {
-        console.log("Student course record not found!");
-      } else {
-        console.log("StudentCourses:", studentCourses);
-      }
-  
-      const ifStudentAlreadyBoughtCurrentCourse =
-        studentCourses?.courses.some((item) => item.courseId === id) || false; // Use optional chaining
-  
-      res.status(200).json({
-        success: true,
-        data: ifStudentAlreadyBoughtCurrentCourse,
-      });
-    } catch (e) {
-      console.error("Error in checkCoursePurchaseInfo:", e);
-      res.status(500).json({
-        success: false,
-        message: "Some error occurred!",
-        error: e.message,
-      });
-    }
-  };
-  
-  
-  
-  
-  
+
+    const ifStudentAlreadyBoughtCurrentCourse =
+      studentCourses?.courses.some((item) => item.courseId === id) || false; // Use optional chaining
+
+    res.status(200).json({
+      success: true,
+      data: ifStudentAlreadyBoughtCurrentCourse,
+    });
+  } catch (e) {
+    console.error("Error in checkCoursePurchaseInfo:", e);
+    res.status(500).json({
+      success: false,
+      message: "Some error occurred!",
+      error: e.message,
+    });
+  }
+};
+
+
+
+module.exports = {
+  getAllStudentViewCourses,
+  getStudentViewCourseDetails,
+  checkCoursePurchaseInfo,
+  getAllCourseTitles
+};

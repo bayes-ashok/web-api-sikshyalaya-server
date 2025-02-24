@@ -8,8 +8,8 @@ const createOrder = async (req, res) => {
   try {
     const {
       userId,
-      userName,
-      userEmail,
+      fName,
+      email,
       orderStatus,
       paymentMethod,
       paymentStatus,
@@ -65,8 +65,8 @@ const createOrder = async (req, res) => {
       } else {
         const newlyCreatedCourseOrder = new Order({
           userId,
-          userName,
-          userEmail,
+          fName,
+          email,
           orderStatus,
           paymentMethod,
           paymentStatus,
@@ -168,8 +168,8 @@ const capturePaymentAndFinalizeOrder = async (req, res) => {
         $addToSet: {
           students: {
             studentId: order.userId,
-            studentName: order.userName,
-            studentEmail: order.userEmail,
+            studentName: order.fName,
+            studentEmail: order.email,
             paidAmount: order.coursePricing,
           },
         },
@@ -200,8 +200,8 @@ const createKhaltiOrder = async (req, res) => {
   try {
     const {
       userId,
-      userName,
-      userEmail,
+      fName,
+      email,
       phone,
       orderStatus,
       paymentMethod,
@@ -230,8 +230,8 @@ const createKhaltiOrder = async (req, res) => {
         "purchase_order_id": "order01", // Example order ID, you can generate a dynamic one
         "purchase_order_name": "Course Payment",
         "customer_info": {
-          "name": userName,
-          "email": userEmail,
+          "name": fName,
+          "email": email,
           "phone": phone
         }
       },
@@ -247,8 +247,8 @@ const createKhaltiOrder = async (req, res) => {
       // Store the order details in the global variable
       globalOrderDetails = {
         userId,
-        userName,
-        userEmail,
+        fName,
+        email,
         orderStatus,
         paymentMethod,
         paymentStatus,
@@ -290,8 +290,8 @@ const verifyPayment = async (req, res) => {
     // Save the order in the Order collection
     const newOrder = new Order({
       userId: globalOrderDetails.userId,
-      userName: globalOrderDetails.userName,
-      userEmail: globalOrderDetails.userEmail,
+      fName: globalOrderDetails.fName,
+      email: globalOrderDetails.email,
       orderStatus: "confirmed",
       paymentMethod: "khalti",
       paymentStatus: "paid",
@@ -310,7 +310,7 @@ const verifyPayment = async (req, res) => {
     console.log("Order saved successfully!");
 
     // Now update the student's courses
-    const { userId, userName, userEmail, courseId, courseTitle, instructorId, instructorName, courseImage, coursePricing } = globalOrderDetails;
+    const { userId, fName, email, courseId, courseTitle, instructorId, instructorName, courseImage, coursePricing } = globalOrderDetails;
 
     // Check if the student already has a record in the StudentCourses collection
     let studentCourses = await StudentCourses.findOne({ userId });
@@ -348,8 +348,8 @@ const verifyPayment = async (req, res) => {
       if (!studentExists) {
         course.students.push({
           studentId: userId,
-          studentName: userName,
-          studentEmail: userEmail,
+          studentName: fName,
+          studentEmail: email,
           paidAmount: coursePricing.toString(),
         });
 
