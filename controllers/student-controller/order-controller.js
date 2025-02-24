@@ -190,4 +190,196 @@ const capturePaymentAndFinalizeOrder = async (req, res) => {
   };
   
 
-  
+// ================================khalti==================================
+
+
+
+let globalOrderDetails = {}; // Global variable to store the order details
+
+const createKhaltiOrder = async (req, res) => {
+  try {
+    const {
+      userId,
+      userName,
+      userEmail,
+      phone,
+      orderStatus,
+      paymentMethod,
+      paymentStatus,
+      orderDate,
+      paymentId,
+      payerId,
+      instructorId,
+      instructorName,
+      courseImage,
+      courseTitle,
+      courseId,
+      coursePricing,
+    } = req.body;
+
+    const coursePricin = coursePricing * 100; // Number value
+    const coursePricingStr = String(coursePricin);
+
+    // Call Khalti's payment API to initiate payment
+    const response = await axios.post(
+      "https://dev.khalti.com/api/v2/epayment/initiate/",
+      {
+        "return_url": "http://localhost:5173/payment-return",
+        "website_url": "http://localhost:5173",
+        "amount": coursePricingStr,
+        "purchase_order_id": "order01", // Example order ID, you can generate a dynamic one
+        "purchase_order_name": "Course Payment",
+        "customer_info": {
+          "name": userName,
+          "email": userEmail,
+          "phone": phone
+        }
+      },
+      {
+        headers: {
+          'Authorization': 'key 41786720168241bb94f45448c2b5f4fb',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (response.data.payment_url) {
+      // Store the order details in the global variable
+      globalOrderDetails = {
+        userId,
+        userName,
+        userEmail,
+        orderStatus,
+        paymentMethod,
+        paymentStatus,
+        orderDate,
+        paymentId: response.data.transaction_id, // This is the transaction ID from Khalti
+        payerId: userId, // Assuming userId as payerId
+        instructorId,
+        instructorName,
+        courseImage,
+        courseTitle,
+        courseId,
+        coursePricing,
+      };
+
+
+      console.log(globalOrderDetails)
+
+      // Send the payment URL and global order details back to frontend for user to complete payment
+      return res.status(200).json({
+        success: true,
+        payment_url: response.data.payment_url,
+      });
+    } else {
+      return res.status(500).json({ success: false, message: "Failed to get payment URL" });
+    }
+  } catch (error) {
+    console.error("Khalti Payment Error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+
+
+
+const verifyPayment = async (req, res) => {
+  try {
+    const { transactionId } = req.body; // Extract transactionId from the request body
+
+    // Save the order in the Order collection
+    const newOrder = new Order({
+      userId: globalOrderDetails.userId,
+      userName: globalOrderDetails.userName,
+      userEmail: globalOrderDetails.userEmail,
+      orderStatus: "confirmed",
+      paymentMethod: "khalti",
+      paymentStatus: "paid",
+      orderDate: new Date(globalOrderDetails.orderDate),
+      paymentId: transactionId || null, // Store the transactionId in paymentId
+      payerId: globalOrderDetails.payerId,
+      instructorId: globalOrderDetails.instructorId,
+      instructorName: globalOrderDetails.instructorName,
+      courseImage: globalOrderDetails.courseImage,
+      courseTitle: globalOrderDetails.courseTitle,
+      courseId: globalOrderDetails.courseId,
+      coursePricing: globalOrderDetails.coursePricing.toString() // Ensure it's a string
+    });
+
+    await newOrder.save(); // Save the new order to the database
+    console.log("Order saved successfully!");
+
+    // Now update the student's courses
+    const { userId, userName, userEmail, courseId, courseTitle, instructorId, instructorName, courseImage, coursePricing } = globalOrderDetails;
+
+    // Check if the student already has a record in the StudentCourses collection
+    let studentCourses = await StudentCourses.findOne({ userId });
+
+    const courseDetails = {
+      courseId,
+      title: courseTitle,
+      instructorId,
+      instructorName,
+      dateOfPurchase: new Date(), // The date when the course was purchased
+      courseImage,
+    };
+
+    if (studentCourses) {
+      // If the student already has a record, add the new course to their courses array
+      studentCourses.courses.push(courseDetails);
+    } else {
+      // If the student doesn't have a record, create a new one
+      studentCourses = new StudentCourses({
+        userId,
+        courses: [courseDetails], // Add the first course to the array
+      });
+    }
+
+    await studentCourses.save(); // Save or update the student's courses
+    console.log("Student course record updated successfully!");
+
+    // Now update the Course collection to add the student
+    const course = await Course.findOne({ _id: courseId });
+
+    if (course) {
+      // Check if the student is already in the students list
+      const studentExists = course.students.some((student) => student.studentId === userId);
+
+      if (!studentExists) {
+        course.students.push({
+          studentId: userId,
+          studentName: userName,
+          studentEmail: userEmail,
+          paidAmount: coursePricing.toString(),
+        });
+
+        await course.save();
+        console.log("Student added to the course successfully!");
+      } else {
+        console.log("Student already enrolled in the course.");
+      }
+    } else {
+      console.error("Course not found!");
+      return res.status(404).json({ message: "Course not found!" });
+    }
+
+    // Respond to the frontend
+    res.status(200).json({ message: "Payment verified and course added successfully" });
+  } catch (error) {
+    console.error("Error saving order, updating student courses, or updating course students:", error);
+    res.status(500).json({ message: "Error processing payment and updating records" }); // Handle errors properly
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+module.exports = { createOrder, capturePaymentAndFinalizeOrder, createKhaltiOrder, verifyPayment };
