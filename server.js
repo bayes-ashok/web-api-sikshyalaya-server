@@ -4,6 +4,8 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth-routes/index");
 const instructorCourseRoutes = require("./routes/instructor-routes/course-routes");
+const mediaRoutes = require("./routes/instructor-routes/media-routes");
+
 async function connectDB() {
   try {
     await mongoose.connect("mongodb://localhost:27017/shikshyalaya-server", {
@@ -36,6 +38,7 @@ app.use(express.json());
 
 //routes configuration
 app.use("/auth", authRoutes);
+app.use("/media", mediaRoutes);
 app.use("/instructor/course", instructorCourseRoutes);
 
 app.use((err, req, res, next) => {
