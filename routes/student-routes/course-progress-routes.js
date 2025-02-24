@@ -1,10 +1,13 @@
 const express = require("express");
 const {
-  getCoursesByStudentId,
-} = require("../../controllers/student-controller/student-courses-controller");
+  getCurrentCourseProgress,
+  markCurrentLectureAsViewed,
+  resetCurrentCourseProgress,
+} = require("../../controllers/student-controller/course-progress-controller");
 
 const router = express.Router();
 
-router.get("/get/:studentId", getCoursesByStudentId);
-
+router.get("/get/:userId/:courseId", getCurrentCourseProgress);
+router.post("/mark-lecture-viewed", markCurrentLectureAsViewed);
+router.post("/reset-progress", resetCurrentCourseProgress);
 module.exports = router;
