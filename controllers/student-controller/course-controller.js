@@ -62,3 +62,23 @@ const getAllStudentViewCourses = async (req, res) => {
   }
 };
 
+
+
+const getAllCourseTitles = async (req, res) => {
+    try {
+      // Fetching all courses and selecting only title, image, and category fields
+      const coursesList = await Course.find({}, 'id title image category');
+  
+      res.status(200).json({
+        success: true,
+        data: coursesList,
+      });
+    } catch (e) {
+      console.log(e);
+      res.status(500).json({
+        success: false,
+        message: "Some error occurred!",
+      });
+    }
+  };
+  
