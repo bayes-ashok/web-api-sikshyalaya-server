@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth-routes/index");
 const instructorCourseRoutes = require("./routes/instructor-routes/course-routes");
 const mediaRoutes = require("./routes/instructor-routes/media-routes");
+const studentViewCourseRoutes = require("./routes/student-routes/course-routes");
+
 
 async function connectDB() {
   try {
@@ -40,6 +42,7 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/media", mediaRoutes);
 app.use("/instructor/course", instructorCourseRoutes);
+app.use("/student/course", studentViewCourseRoutes);
 
 app.use((err, req, res, next) => {
   console.log(err.stack);
