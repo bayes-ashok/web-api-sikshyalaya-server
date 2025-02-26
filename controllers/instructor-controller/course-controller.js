@@ -1,27 +1,39 @@
 const Course = require("../../models/Course");
+const User = require("../../models/User"); // Make sure to import the User model
 
 const addNewCourse = async (req, res) => {
   try {
     const courseData = req.body;
-    const newlyCreatedCourse = new Course(courseData);
-    const saveCourse = await newlyCreatedCourse.save();
-
-    if (saveCourse) {
-      res.status(201).json({
-        success: true,
-        message: "Course saved successfully",
-        data: saveCourse,
+    
+    // Find the instructor using the provided instructorId
+    const instructor = await User.findById(courseData.instructorId);
+    if (instructor) {
+      // Set the instructorName to the user's fName
+      courseData.instructorName = instructor.fName;
+    } else {
+      // Optionally handle the case where the instructor is not found
+      return res.status(404).json({
+        success: false,
+        message: "Instructor not found",
       });
     }
+
+    const newlyCreatedCourse = new Course(courseData);
+    const savedCourse = await newlyCreatedCourse.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Course saved successfully",
+      data: savedCourse,
+    });
   } catch (e) {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured!",
+      message: "Some error occurred!",
     });
   }
 };
-
 const getAllCourses = async (req, res) => {
     try {
       const coursesList = await Course.find({});
@@ -39,11 +51,24 @@ const getAllCourses = async (req, res) => {
     }
   };
   
-  
-const updateCourseByID = async (req, res) => {
+
+  const updateCourseByID = async (req, res) => {
     try {
       const { id } = req.params;
       const updatedCourseData = req.body;
+  
+      // If an instructorId is provided, update the instructorName
+      if (updatedCourseData.instructorId) {
+        const instructor = await User.findById(updatedCourseData.instructorId);
+        if (instructor) {
+          updatedCourseData.instructorName = instructor.fName;
+        } else {
+          return res.status(404).json({
+            success: false,
+            message: "Instructor not found",
+          });
+        }
+      }
   
       const updatedCourse = await Course.findByIdAndUpdate(
         id,
@@ -67,10 +92,11 @@ const updateCourseByID = async (req, res) => {
       console.log(e);
       res.status(500).json({
         success: false,
-        message: "Some error occured!",
+        message: "Some error occurred!",
       });
     }
   };
+  
   const getCourseDetailsByID = async (req, res) => {
     try {
       const { id } = req.params;
