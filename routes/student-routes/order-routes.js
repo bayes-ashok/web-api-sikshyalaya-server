@@ -3,7 +3,8 @@ const {
   createOrder,
   createKhaltiOrder,
   capturePaymentAndFinalizeOrder,
-  verifyPayment
+  verifyPayment,
+  khaltiOrder
 } = require("../../controllers/student-controller/order-controller");
 
 const router = express.Router();

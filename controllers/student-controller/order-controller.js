@@ -1,6 +1,8 @@
 const paypal = require("../../helpers/paypal");
 const Order = require("../../models/Order");
 const Course = require("../../models/Course");
+const User = require("../../models/User");
+
 const StudentCourses = require("../../models/StudentCourses");
 const axios = require("axios");
 
@@ -371,15 +373,16 @@ const verifyPayment = async (req, res) => {
   }
 };
 
+const jwt = require('jsonwebtoken');  // If using JWT for userToken
 
-
-
-
-
-
-
-
-
+// Safe Stringify function to handle circular references
+const safeStringify = (obj) => {
+  try {
+    return JSON.stringify(obj);
+  } catch (error) {
+    return '[Circular reference]'; // Return a placeholder if circular reference is detected
+  }
+};
 
 
 module.exports = { createOrder, capturePaymentAndFinalizeOrder, createKhaltiOrder, verifyPayment };
