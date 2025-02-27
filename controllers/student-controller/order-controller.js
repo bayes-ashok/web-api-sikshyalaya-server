@@ -385,4 +385,59 @@ const safeStringify = (obj) => {
 };
 
 
-module.exports = { createOrder, capturePaymentAndFinalizeOrder, createKhaltiOrder, verifyPayment };
+
+const initiateKhaltiPayment = async (req, res) => {
+  try {
+    const { userId, fName, email, phone, coursePricing } = req.body;
+
+    const amountInPaisa = coursePricing * 100; // Convert to paisa
+    const amountStr = String(amountInPaisa);
+
+    // Khalti API request payload
+    const khaltiPayload = {
+      return_url: "http://localhost:5173/payment-return",
+      website_url: "http://localhost:5173",
+      amount: amountStr,
+      purchase_order_id: `order_${userId}_${Date.now()}`, // Dynamic order ID
+      purchase_order_name: "Course Payment",
+      customer_info: {
+        name: fName,
+        email,
+        phone,
+      },
+    };
+
+    // Make request to Khalti API
+    const response = await axios.post(
+      "https://dev.khalti.com/api/v2/epayment/initiate/",
+      khaltiPayload,
+      {
+        headers: {
+          Authorization: "key 41786720168241bb94f45448c2b5f4fb",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.data.payment_url) {
+      return res.status(200).json({
+        success: true,
+        payment_url: response.data.payment_url,
+        transaction_id: response.data.transaction_id, // Pass transaction ID for reference
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to get payment URL",
+      });
+    }
+  } catch (error) {
+    console.error("Khalti Payment Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+module.exports = { createOrder, capturePaymentAndFinalizeOrder, createKhaltiOrder, verifyPayment,initiateKhaltiPayment };
