@@ -32,4 +32,27 @@ const getQuizSetsByCategory = async (req, res) => {
   }
 };
 
-module.exports = { createQuizSet, getAllQuizSets, getQuizSetsByCategory };
+
+// Delete a quiz set by ID and remove associated questions
+const deleteQuizSet = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find and delete the quiz set
+    const deletedQuizSet = await QuizSet.findByIdAndDelete(id);
+    if (!deletedQuizSet) {
+      return res.status(404).json({ message: "Quiz Set not found" });
+    } else{
+      return res.status(200).json({ message: "Deleted" });
+
+    }
+
+  } catch (error) {
+    console.error("Error deleting quiz set:", error);
+    res.status(500).json({ message: "Error deleting quiz set", error });
+  }
+};
+
+
+
+module.exports = { createQuizSet, getAllQuizSets, getQuizSetsByCategory,deleteQuizSet };
