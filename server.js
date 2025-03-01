@@ -47,7 +47,6 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/media", mediaRoutes);
 app.use("/instructor/course", instructorCourseRoutes);
-app.use("/instructor/course", instructorCourseRoutes);
 app.use("/instructor/quiz", instructorQuizRoutes);
 app.use("/instructor/question", instructorQuestionRoutes);
 app.use("/student/course", studentViewCourseRoutes);

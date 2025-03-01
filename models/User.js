@@ -7,6 +7,8 @@ const UserSchema = new mongoose.Schema({
   role: String,
   phone: String,   
   image: String,
+  verified: { type: Boolean, default: false },
+  verificationToken: { type: String },
 });
 
 module.exports = mongoose.model("User", UserSchema);
