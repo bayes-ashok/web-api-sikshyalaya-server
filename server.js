@@ -15,7 +15,7 @@ const studentCoursesRoutes = require("./routes/student-routes/student-courses-ro
 const studentCourseProgressRoutes = require("./routes/student-routes/course-progress-routes");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/shikshyalaya-server";
 
 // ✅ Asynchronous function to connect to MongoDB
@@ -35,12 +35,13 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 // ✅ Middlewares
-app.use(cors({
-  origin: "http://localhost:5173",
-  methods: ["GET", "POST", "DELETE", "PUT"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(cors());
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.send("✅ Backend Server is Running!");
+});
+
 
 // ✅ Routes configuration
 app.use("/auth", authRoutes);
@@ -64,11 +65,14 @@ app.use((err, req, res, next) => {
 
 // 🔄 Start the server (Only in non-test environments)
 let server;
-if (process.env.NODE_ENV !== "test") {
-  server = app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-  });
-}
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`🌍 Accessible via: http://localhost:${PORT} (for local testing)`);
+  console.log(`🚀 Use 'ngrok http ${PORT}' to expose publicly`);
+});
+
+
+
 
 // ✅ Export `app` and `server` for testing
 module.exports = { app, server, connectDB };
